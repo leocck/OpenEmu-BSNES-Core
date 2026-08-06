@@ -415,6 +415,7 @@
     }
     OEMemoryRegionDescriptor *wram = [OEMemoryRegionDescriptor descriptorWithName:@"WRAM"
                                                                          address:0x7E0000
+                                                                    addressWidth:6
                                                                             data:data];
     return @[wram];
 }
