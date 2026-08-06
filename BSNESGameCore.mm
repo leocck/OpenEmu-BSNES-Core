@@ -160,7 +160,7 @@
 
     // Convert cheat search codes (address:value) to higan format (address=value).
     // Other types (Action Replay, Game Genie, etc.) are already in their native format.
-    if ([type isEqual:OECheatCodeTypeCheatSearch])
+    if ([type isEqual:OECheatCodeTypeCheatSearch] || [type isEqual:OECheatCodeTypeUnknown])
         code = [[OECheatCodeUtilities convertCheatSearchCodeToPatch:code addressWidth:6 minDataBytes:1] stringByReplacingOccurrencesOfString:@":" withString:@"="];
 
     NSArray <NSString *> *codes = [code componentsSeparatedByString:@"+"];
