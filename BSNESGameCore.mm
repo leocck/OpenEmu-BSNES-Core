@@ -158,10 +158,10 @@
     code = [code stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     code = [code stringByReplacingOccurrencesOfString:@" " withString:@""];
 
-    // Convert cheat search codes (address:value) to PAR format.
+    // Convert cheat search codes (address:value) to higan format (address=value).
     // Other types (Action Replay, Game Genie, etc.) are already in their native format.
     if ([type isEqual:OECheatCodeTypeCheatSearch])
-        code = [OECheatCodeUtilities convertCheatSearchCodeToPAR:code];
+        code = [[OECheatCodeUtilities convertCheatSearchCodeToPatch:code addressWidth:6 minDataBytes:1] stringByReplacingOccurrencesOfString:@":" withString:@"="];
 
     NSArray <NSString *> *codes = [code componentsSeparatedByString:@"+"];
     if (enabled)
