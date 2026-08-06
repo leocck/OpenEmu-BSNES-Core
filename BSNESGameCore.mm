@@ -28,6 +28,8 @@
 #import <OpenGL/gl.h>
 #import "BSNESGameCore.h"
 #import "OESNESSystemResponderClient.h"
+#import <OpenEmuBase/OEMemoryRegionDescriptor.h>
+#import <OpenEmuBase/OECheatCodeUtilities.h>
 
 #define SYS_PARAM_H__BSD BSD
 #undef BSD
@@ -152,8 +154,15 @@
 
 - (void)setCheat:(NSString *)code setType:(NSString *)type setEnabled:(BOOL)enabled
 {
-    if ([type isEqual:@"Action Replay"])
-        code = [code stringByReplacingOccurrencesOfString:@":" withString:@""];
+    // Sanitize
+    code = [code stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    code = [code stringByReplacingOccurrencesOfString:@" " withString:@""];
+
+    // Convert cheat search codes (address:value) to PAR format.
+    // Other types (Action Replay, Game Genie, etc.) are already in their native format.
+    if ([type isEqual:OECheatCodeTypeCheatSearch])
+        code = [OECheatCodeUtilities convertCheatSearchCodeToPAR:code];
+
     NSArray <NSString *> *codes = [code componentsSeparatedByString:@"+"];
     if (enabled)
         [_activeCheats addObjectsFromArray:codes];
@@ -390,6 +399,24 @@
 - (NSUInteger)channelCount
 {
     return Emulator::audio.channels();
+}
+
+
+#pragma mark - Memory Regions
+
+- (NSArray<OEMemoryRegionDescriptor *> *)readableMemoryRegions
+{
+    // SNES WRAM: 128KB at CPU address $7E0000-$7FFFFF
+    const NSUInteger wramSize = 128 * 1024;
+    NSMutableData *data = [NSMutableData dataWithLength:wramSize];
+    uint8_t *bytes = (uint8_t *)data.mutableBytes;
+    for (NSUInteger i = 0; i < wramSize; i++) {
+        bytes[i] = emulator->read(0x7E0000 + i);
+    }
+    OEMemoryRegionDescriptor *wram = [OEMemoryRegionDescriptor descriptorWithName:@"WRAM"
+                                                                         address:0x7E0000
+                                                                            data:data];
+    return @[wram];
 }
 
 
